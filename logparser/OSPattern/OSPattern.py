@@ -64,17 +64,14 @@ class LogParser:
         templates = {}
         event_ids = []
         event_templates = []
-        parameter_lists = []
 
         for idx, row in self.df_log.iterrows():
             log_content = row['Content']
             # Apply preprocessing
-            # preprocessed_content = self.preprocess(log_content)
+            preprocessed_content = self.preprocess(log_content)
             # Generate a template by removing letters and digits
-            template = self.generate_template(log_content)
-            # Extract parameters if required
-            parameters = self.extract_parameters(log_content, template) if self.keep_parameters else []
-
+            template = self.generate_template(preprocessed_content)
+            
             # Generate a unique EventId for the template
             template_str = template
             event_id = hashlib.md5(template_str.encode('utf-8')).hexdigest()[0:8]
@@ -91,18 +88,14 @@ class LogParser:
             # Append results
             event_ids.append(event_id)
             event_templates.append(template_str)
-            if self.keep_parameters:
-                parameter_lists.append(parameters)
-
+            
             if (idx + 1) % 1000 == 0 or (idx + 1) == len(self.df_log):
                 print(f"Processed {idx + 1} lines out of {len(self.df_log)}.")
 
         # Add results to the DataFrame
         self.df_log['EventId'] = event_ids
         self.df_log['EventTemplate'] = event_templates
-        if self.keep_parameters:
-            self.df_log['ParameterList'] = parameter_lists
-
+      
         # Output the results
         self.output_results(templates)
         time_taken = datetime.now() - start_time
@@ -119,24 +112,7 @@ class LogParser:
         template = re.sub(r'[a-zA-Z0-9]+', '', line)
         return template
 
-    def extract_parameters(self, original_line, template_tokens):
-        # Join the template tokens to form the template string
-        template_str = template_tokens
-        # Escape special regex characters in template
-        template_regex = re.escape(template_str)
-        # Replace spaces with regex whitespace matcher
-        template_regex = template_regex.replace('\\ ', '\\s+')
-        # Replace placeholders with regex groups
-        template_regex = re.sub(r'\\\*', '(.*?)', template_regex)
-        # Compile the regex
-        pattern = re.compile('^' + template_regex + '$')
-        # Match the original line
-        match = pattern.match(original_line)
-        if match:
-            return list(match.groups())
-        else:
-            return []
-
+    
     def load_data(self):
         headers, regex = self.generate_logformat_regex(self.log_format)
         self.df_log = self.log_to_dataframe(
