@@ -48,7 +48,8 @@ class LogParser:
     def tokenize(self):
         event_label = []
         # print("\n============================Removing obvious dynamic variables======================\n\n")
-        for idx, log in self.df_log["Content"].iteritems():
+        for idx, row in self.df_log.iterrows():
+            log = row["Content"]
             tokens = log.split()
             tokens = re.sub(r"\\", "", str(tokens))
             tokens = re.sub(r"\'", "", str(tokens))
@@ -184,7 +185,7 @@ class LogParser:
         )
         groups = self.df_log.groupby("EventId")
         keys = groups.groups.keys()
-        stock = pd.DataFrame()
+        stock_list = []
         count = 0
 
         re_list2 = ["[ ]{1,}[-]*[0-9]+[ ]{1,}", ' "\d+" ']
@@ -207,9 +208,10 @@ class LogParser:
             template = re.sub(generic_re, " <*> ", template)
             slc["event_label"] = [template] * len(slc["event_label"].to_list())
 
-            stock = stock.append(slc)
-            stock = stock.sort_index()
-
+            stock_list.append(slc)
+            
+        stock = pd.concat(stock_list)
+        stock = stock.sort_index()
         self.df_log = stock
 
         self.df_log["EventTemplate"] = self.df_log["event_label"]

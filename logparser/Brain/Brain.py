@@ -210,49 +210,52 @@ class LogParser:
                 s = re.sub(rgex, "<*>", s)
             for de in delimiter:
                 s = re.sub(de, "", s)
-            if dataset == "HealthApp":
-                s = re.sub(":", ": ", s)
-                s = re.sub("=", "= ", s)
-                s = re.sub("\|", "| ", s)
-            if dataset == "Android":
-                s = re.sub("\(", "( ", s)
-                s = re.sub("\)", ") ", s)
-            if dataset == "Android":
-                s = re.sub(":", ": ", s)
-                s = re.sub("=", "= ", s)
-            if dataset == "HPC":
-                s = re.sub("=", "= ", s)
-                s = re.sub("-", "- ", s)
-                s = re.sub(":", ": ", s)
-            if dataset == "BGL":
-                s = re.sub("=", "= ", s)
-                s = re.sub("\.\.", ".. ", s)
-                s = re.sub("\(", "( ", s)
-                s = re.sub("\)", ") ", s)
-            if dataset == "Hadoop":
-                s = re.sub("_", "_ ", s)
-                s = re.sub(":", ": ", s)
-                s = re.sub("=", "= ", s)
-                s = re.sub("\(", "( ", s)
-                s = re.sub("\)", ") ", s)
-            if dataset == "HDFS":
-                s = re.sub(":", ": ", s)
-            if dataset == "Linux":
-                s = re.sub("=", "= ", s)
-                s = re.sub(":", ": ", s)
-            if dataset == "Spark":
-                s = re.sub(":", ": ", s)
-            if dataset == "Thunderbird":
-                s = re.sub(":", ": ", s)
-                s = re.sub("=", "= ", s)
-            if dataset == "Windows":
-                s = re.sub(":", ": ", s)
-                s = re.sub("=", "= ", s)
-                s = re.sub("\[", "[ ", s)
-                s = re.sub("]", "] ", s)
-            if dataset == "Zookeeper":
-                s = re.sub(":", ": ", s)
-                s = re.sub("=", "= ", s)
+            # if dataset == "HealthApp":
+            #     s = re.sub(":", ": ", s)
+            #     s = re.sub("=", "= ", s)
+            #     s = re.sub("\|", "| ", s)
+            # if dataset == "Android":
+            #     s = re.sub("\(", "( ", s)
+            #     s = re.sub("\)", ") ", s)
+            # if dataset == "Android":
+            #     s = re.sub(":", ": ", s)
+            #     s = re.sub("=", "= ", s)
+            # if dataset == "HPC":
+            #     s = re.sub("=", "= ", s)
+            #     s = re.sub("-", "- ", s)
+            #     s = re.sub(":", ": ", s)
+            # if dataset == "BGL":
+            #     s = re.sub("=", "= ", s)
+            #     s = re.sub("\.\.", ".. ", s)
+            #     s = re.sub("\(", "( ", s)
+            #     s = re.sub("\)", ") ", s)
+            # if dataset == "Hadoop":
+            #     s = re.sub("_", "_ ", s)
+            #     s = re.sub(":", ": ", s)
+            #     s = re.sub("=", "= ", s)
+            #     s = re.sub("\(", "( ", s)
+            #     s = re.sub("\)", ") ", s)
+            # if dataset == "HDFS":
+            #     s = re.sub(":", ": ", s)
+            # if dataset == "Linux":
+            #     s = re.sub("=", "= ", s)
+            #     s = re.sub(":", ": ", s)
+            # if dataset == "Spark":
+            #     s = re.sub(":", ": ", s)
+            # if dataset == "Thunderbird":
+            #     s = re.sub(":", ": ", s)
+            #     s = re.sub("=", "= ", s)
+            # if dataset == "Windows":
+            #     s = re.sub(":", ": ", s)
+            #     s = re.sub("=", "= ", s)
+            #     s = re.sub("\[", "[ ", s)
+            #     s = re.sub("]", "] ", s)
+            # if dataset == "Zookeeper":
+            #     s = re.sub(":", ": ", s)
+            #     s = re.sub("=", "= ", s)
+            new_delimiter = [":","=","[", "]", "(",")","-","|"]
+            for de in new_delimiter:
+                s = s.replace(de, de + ' ')
             s = re.sub(",", ", ", s)
             s = re.sub(" +", " ", s).split(" ")
             s.insert(0, str(line_id))

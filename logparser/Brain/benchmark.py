@@ -25,20 +25,16 @@ import os
 input_dir = "../../data/loghub_2k/"  # The input directory of log file
 output_dir = "Brain_result/"  # The output directory of parsing results
 
-
+general_threshold = 4
+general_regex = [
+    r"(\d+\.){3}\d+(:\d+)?",
+    r"((\d+\.){3}\d+,?)+",
+    r"(/[\w-]+)+",
+    r"([\w-]+\.){2,}[\w-]+",
+    r"\d{2}:\d{2}(:\d{2})*",
+    r"\b(\-?\+?\d+)\b|\b0[Xx][a-fA-F\d]+\b|\b[a-fA-F\d]{4,}\b",
+]
 benchmark_settings = {
-    "Proxifier": {
-        "log_file": "Proxifier/Proxifier_2k.log",
-        "log_format": "\[<Time>\] <Program> - <Content>",
-        "regex": [
-            r"<\d+\ssec",
-            r"([\w-]+\.)+[\w-]+(:\d+)?",
-            r"\d{2}:\d{2}(:\d{2})*",
-            r"[KGTM]B",
-        ],
-        "delimiter": [r"\(.*?\)"],
-        "theshold": 3,
-    },
     "HDFS": {
         "log_file": "HDFS/HDFS_2k.log",
         "log_format": "<Date> <Time> <Pid> <Level> <Component>: <Content>",
@@ -127,6 +123,18 @@ benchmark_settings = {
         "delimiter": [],
         "theshold": 4,
     },
+    "Proxifier": {
+        "log_file": "Proxifier/Proxifier_2k.log",
+        "log_format": "\[<Time>\] <Program> - <Content>",
+        "regex": [
+            r"<\d+\ssec",
+            r"([\w-]+\.)+[\w-]+(:\d+)?",
+            r"\d{2}:\d{2}(:\d{2})*",
+            r"[KGTM]B",
+        ],
+        "delimiter": [],
+        "theshold": 3,
+    },
     "OpenSSH": {
         "log_file": "OpenSSH/OpenSSH_2k.log",
         "log_format": "<Date> <Day> <Time> <Component> sshd\[<Pid>\]: <Content>",
@@ -160,9 +168,11 @@ for dataset, setting in benchmark_settings.items():
         log_format=setting["log_format"],
         indir=indir,
         outdir=output_dir,
-        rex=setting["regex"],
+        # rex=setting["regex"],
+        rex = general_regex,
         delimeter=setting["delimiter"],
-        threshold=setting["theshold"],
+        # threshold=setting["theshold"],
+        threshold=general_threshold,
         logname=dataset,
     )
     parser.parse(log_file)

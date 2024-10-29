@@ -25,7 +25,16 @@ import pandas as pd
 
 input_dir = "../../data/loghub_2k/"  # The input directory of log file
 output_dir = "Drain_result/"  # The output directory of parsing results
-
+general_depth = 5
+general_st = 0.5
+general_regex = [
+    r"(\d+\.){3}\d+(:\d+)?",
+    r"((\d+\.){3}\d+,?)+",
+    r"(/[\w-]+)+",
+    r"([\w-]+\.){2,}[\w-]+",
+    r"\d{2}:\d{2}(:\d{2})*",
+    r"\b(\-?\+?\d+)\b|\b0[Xx][a-fA-F\d]+\b|\b[a-fA-F\d]{4,}\b",
+]
 
 benchmark_settings = {
     "HDFS": {
@@ -161,9 +170,9 @@ for dataset, setting in benchmark_settings.items():
         log_format=setting["log_format"],
         indir=indir,
         outdir=output_dir,
-        rex=setting["regex"],
-        depth=setting["depth"],
-        st=setting["st"],
+        rex=general_regex,
+        depth=general_depth,
+        st=general_st,
     )
     parser.parse(log_file)
 
