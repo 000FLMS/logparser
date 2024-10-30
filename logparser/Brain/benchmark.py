@@ -18,12 +18,13 @@ import sys
 sys.path.append("../../")
 from logparser import Brain
 from logparser.utils import evaluator
+from logparser.utils.const import input_dir, input_file_suffix, corrected_input_dir, corrected_file_suffix
 import pandas as pd
 import os
 
 
-input_dir = "../../data/loghub_2k/"  # The input directory of log file
 output_dir = "Brain_result/"  # The output directory of parsing results
+
 
 general_threshold = 4
 general_regex = [
@@ -162,24 +163,24 @@ benchmark_result = []
 
 for dataset, setting in benchmark_settings.items():
     print("\n=== Evaluation on %s ===" % dataset)
-    indir = os.path.join(input_dir, os.path.dirname(setting["log_file"]))
+    indir = os.path.join(corrected_input_dir, os.path.dirname(setting["log_file"]))
     log_file = os.path.basename(setting["log_file"])
     parser = Brain.LogParser(
         log_format=setting["log_format"],
         indir=indir,
         outdir=output_dir,
-        # rex=setting["regex"],
-        rex = general_regex,
+        rex=setting["regex"],
+        # rex = general_regex,
         delimeter=setting["delimiter"],
-        # threshold=setting["theshold"],
-        threshold=general_threshold,
+        threshold=setting["theshold"],
+        # threshold=general_threshold,
         logname=dataset,
     )
     parser.parse(log_file)
 
     F1_measure, accuracy = evaluator.evaluate(
-        groundtruth=os.path.join(indir, log_file + "_structured.csv"),
-        parsedresult=os.path.join(output_dir, log_file + "_structured.csv"),
+        groundtruth=os.path.join(indir, log_file + corrected_file_suffix),
+        parsedresult=os.path.join(output_dir, log_file + input_file_suffix),
     )
     benchmark_result.append([dataset, F1_measure, accuracy])
 

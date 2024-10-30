@@ -18,11 +18,11 @@ import sys
 sys.path.append("../../")
 from logparser.SLCT import LogParser
 from logparser.utils import evaluator
+from logparser.utils.const import input_dir, input_file_suffix, corrected_input_dir, corrected_file_suffix
 import os
 import pandas as pd
 
 
-input_dir = "../../data/loghub_2k/"  # The input directory of log file
 output_dir = "SLCT_result/"  # The output directory of parsing results
 
 benchmark_settings = {
@@ -136,7 +136,7 @@ benchmark_settings = {
 bechmark_result = []
 for dataset, setting in benchmark_settings.items():
     print("\n=== Evaluation on %s ===" % dataset)
-    indir = os.path.join(input_dir, os.path.dirname(setting["log_file"]))
+    indir = os.path.join(corrected_input_dir, os.path.dirname(setting["log_file"]))
     log_file = os.path.basename(setting["log_file"])
 
     parser = LogParser(
@@ -149,8 +149,8 @@ for dataset, setting in benchmark_settings.items():
     parser.parse(log_file)
 
     F1_measure, accuracy = evaluator.evaluate(
-        groundtruth=os.path.join(indir, log_file + "_structured.csv"),
-        parsedresult=os.path.join(output_dir, log_file + "_structured.csv"),
+        groundtruth=os.path.join(indir, log_file + corrected_file_suffix),
+        parsedresult=os.path.join(output_dir, log_file + input_file_suffix),
     )
     bechmark_result.append([dataset, F1_measure, accuracy])
 
@@ -158,4 +158,4 @@ print("\n=== Overall evaluation results ===")
 df_result = pd.DataFrame(bechmark_result, columns=["Dataset", "F1_measure", "Accuracy"])
 df_result.set_index("Dataset", inplace=True)
 print(df_result)
-df_result.to_csv("SLCT_benchmark_result.csv", float_format="%.6f")
+df_result.to_csv("SLCT_bechmark_result.csv", float_format="%.6f")

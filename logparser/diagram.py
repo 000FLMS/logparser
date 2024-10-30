@@ -103,9 +103,10 @@ def draw_distribution_plot(df):
     plt.show()
 
 if __name__ == "__main__":
-    # benchmark_dir = "./BenchmarkResult"
-    benchmark_dir = "TestBenchmark"
+    benchmark_dir = "./BenchmarkResult"
+    # benchmark_dir = "TestBenchmark"
     df = load_data(benchmark_dir)
     # print(df)
-    draw_benchmark_table(df)
     draw_distribution_plot(df)
+    draw_benchmark_table(df)
+    

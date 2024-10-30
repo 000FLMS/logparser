@@ -15,7 +15,7 @@ echo "=== Evaluating MoLFI ===" && cd $home/MoLFI && python benchmark.py && \
 echo "=== Evaluating SHISO ===" && cd $home/SHISO && python benchmark.py && \
 echo "=== Evaluating SLCT ===" && cd $home/SLCT && python benchmark.py && \
 echo "=== Evaluating Spell ===" && cd $home/Spell && python benchmark.py && \
-echo "=== Evaluating logmatch ===" && cd $home/logmatch && python benchmark.py &&\
+# echo "=== Evaluating logmatch ===" && cd $home/logmatch && python benchmark.py &&\
 # echo "=== Evaluating NuLog ===" && cd $home/NuLog && python benchmark.py &&\
 echo "=== Evaluating Brain ===" && cd $home/Brain && python benchmark.py &&\
 echo "=== Evaluating OSPattern ===" && cd $home/OSPattern && python benchmark.py &&\
