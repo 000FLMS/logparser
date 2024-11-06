@@ -16,6 +16,9 @@
 
 import pandas as pd
 from scipy.special import comb
+import os
+import tracemalloc
+from datetime import datetime
 
 
 def evaluate(groundtruth, parsedresult):
@@ -116,3 +119,36 @@ def get_accuracy(series_groundtruth, series_parsedlog, debug=False):
     f_measure = 2 * precision * recall / (precision + recall)
     accuracy = float(accurate_events) / series_groundtruth.size
     return precision, recall, f_measure, accuracy
+
+def benchmark_time(dataset, parser, log_file):
+    benchmark_result = []
+    parsing_times = 10
+    print("\n=== Evaluation on %s ===" % dataset)
+    total_time = []
+    for _ in range(parsing_times):
+        start_time = datetime.now()
+        parser.parse(log_file)
+        end_time = datetime.now()
+        total_time.append((end_time - start_time).total_seconds())
+    delta_series = pd.Series(total_time)
+    mean_time = delta_series.mean()
+    std_time = delta_series.std()
+    benchmark_result.append([dataset, mean_time, std_time])
+    return benchmark_result
+
+def benchmark_memory(dataset, parser, log_file):
+    benchmark_result = []
+    parsing_times = 10
+    total_memo = []
+    for _ in range(parsing_times):
+        tracemalloc.start()
+        current, _ = tracemalloc.get_traced_memory()
+        parser.parse(log_file)
+        _, peak = tracemalloc.get_traced_memory()
+        total_memo.append((peak - current) / 1024)
+        tracemalloc.stop()
+    delta_series = pd.Series(total_memo)
+    mean_memo = delta_series.mean()
+    std_memo = delta_series.std()
+    benchmark_result.append([dataset, mean_memo, std_memo])
+    return benchmark_result

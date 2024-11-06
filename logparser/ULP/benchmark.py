@@ -22,6 +22,7 @@ from logparser.utils import evaluator
 from logparser.utils.const import input_dir, input_file_suffix, corrected_input_dir, corrected_file_suffix
 import os
 import pandas as pd
+from datetime import datetime
 
 
 output_dir = "ULP_result/"  # The output directory of parsing results
@@ -119,29 +120,67 @@ benchmark_settings = {
     }
 }
 
-bechmark_result = []
-for dataset, setting in benchmark_settings.items():
-    print("\n=== Evaluation on %s ===" % dataset)
-    indir = os.path.join(corrected_input_dir, os.path.dirname(setting["log_file"]))
-    log_file = os.path.basename(setting["log_file"])
+def benchmark_accuracy():
+    bechmark_result = []
+    for dataset, setting in benchmark_settings.items():
+        print("\n=== Evaluation on %s ===" % dataset)
+        indir = os.path.join(corrected_input_dir, os.path.dirname(setting["log_file"]))
+        log_file = os.path.basename(setting["log_file"])
 
-    parser = LogParser(
-        log_format=setting["log_format"],
-        indir=indir,
-        outdir=output_dir,
-        rex=setting["regex"],
+        parser = LogParser(
+            log_format=setting["log_format"],
+            indir=indir,
+            outdir=output_dir,
+            rex=setting["regex"],
+        )
+        parser.parse(log_file)
+
+        F1_measure, accuracy = evaluator.evaluate(
+            groundtruth=os.path.join(indir, log_file + corrected_file_suffix),
+            parsedresult=os.path.join(output_dir, log_file + input_file_suffix),
+        )
+        bechmark_result.append([dataset, F1_measure, accuracy])
+
+
+    print("\n=== Overall evaluation results ===")
+    df_result = pd.DataFrame(bechmark_result, columns=["Dataset", "F1_measure", "Accuracy"])
+    df_result.set_index("Dataset", inplace=True)
+    print(df_result)
+    df_result.to_csv("ULP_bechmark_result.csv", float_format="%.6f")
+
+
+def benchmark_time():
+    benchmark_result = []
+    parsing_times = 10
+    for dataset, setting in benchmark_settings.items():
+        print("\n=== Evaluation on %s ===" % dataset)
+        indir = os.path.join(corrected_input_dir, os.path.dirname(setting["log_file"]))
+        log_file = os.path.basename(setting["log_file"])
+        
+        total_time = []
+        for _ in range(parsing_times):
+            parser = LogParser(
+            log_format=setting["log_format"],
+            indir=indir,
+            outdir=output_dir,
+            rex=setting["regex"],
+        )
+            start_time = datetime.now()
+            parser.parse(log_file)
+            end_time = datetime.now()
+            total_time.append((end_time - start_time).total_seconds())
+        delta_series = pd.Series(total_time)
+        mean_time = delta_series.mean()
+        std_time = delta_series.std()
+        benchmark_result.append([dataset, mean_time, std_time])
+
+    print("\n=== Overall time results ===")
+    df_result = pd.DataFrame(
+        benchmark_result, columns=["Dataset", "Mean", "Std"]
     )
-    parser.parse(log_file)
+    df_result.set_index("Dataset", inplace=True)
+    print(df_result)
+    df_result.to_csv("ULP_time_result.csv", float_format="%.6f")
 
-    F1_measure, accuracy = evaluator.evaluate(
-        groundtruth=os.path.join(indir, log_file + corrected_file_suffix),
-        parsedresult=os.path.join(output_dir, log_file + input_file_suffix),
-    )
-    bechmark_result.append([dataset, F1_measure, accuracy])
-
-
-print("\n=== Overall evaluation results ===")
-df_result = pd.DataFrame(bechmark_result, columns=["Dataset", "F1_measure", "Accuracy"])
-df_result.set_index("Dataset", inplace=True)
-print(df_result)
-df_result.to_csv("ULP_bechmark_result.csv", float_format="%.6f")
+if __name__ == "__main__":
+    benchmark_time()

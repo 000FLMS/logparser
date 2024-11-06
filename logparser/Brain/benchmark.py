@@ -18,23 +18,17 @@ import sys
 sys.path.append("../../")
 from logparser import Brain
 from logparser.utils import evaluator
-from logparser.utils.const import input_dir, input_file_suffix, corrected_input_dir, corrected_file_suffix
+from logparser.utils import const
 import pandas as pd
 import os
+from datetime import datetime
+import tracemalloc
 
 
 output_dir = "Brain_result/"  # The output directory of parsing results
 
 
 general_threshold = 4
-general_regex = [
-    r"(\d+\.){3}\d+(:\d+)?",
-    r"((\d+\.){3}\d+,?)+",
-    r"(/[\w-]+)+",
-    r"([\w-]+\.){2,}[\w-]+",
-    r"\d{2}:\d{2}(:\d{2})*",
-    r"\b(\-?\+?\d+)\b|\b0[Xx][a-fA-F\d]+\b|\b[a-fA-F\d]{4,}\b",
-]
 benchmark_settings = {
     "HDFS": {
         "log_file": "HDFS/HDFS_2k.log",
@@ -159,35 +153,183 @@ benchmark_settings = {
     },
 }
 
-benchmark_result = []
+spark_benchmark_settings = {
+    "Spark_10k": {
+        "log_file": "Spark/Spark_10k.log",
+        "log_format": "<Date> <Time> <Level> <Component>: <Content>",
+        "regex": [r"(\d+\.){3}\d+", r"\b[KGTM]?B\b", r"([\w-]+\.){2,}[\w-]+"],
+        "delimiter": [],
+        "theshold": 4,
+    },
+    "Spark_50k": {
+        "log_file": "Spark/Spark_50k.log",
+        "log_format": "<Date> <Time> <Level> <Component>: <Content>",
+        "regex": [r"(\d+\.){3}\d+", r"\b[KGTM]?B\b", r"([\w-]+\.){2,}[\w-]+"],
+        "delimiter": [],
+        "theshold": 4,
+    },
+    "Spark_100k": {
+        "log_file": "Spark/Spark_100k.log",
+        "log_format": "<Date> <Time> <Level> <Component>: <Content>",
+        "regex": [r"(\d+\.){3}\d+", r"\b[KGTM]?B\b", r"([\w-]+\.){2,}[\w-]+"],
+        "delimiter": [],
+        "theshold": 4,
+    },
+    "Spark_500k": {
+        "log_file": "Spark/Spark_500k.log",
+        "log_format": "<Date> <Time> <Level> <Component>: <Content>",
+        "regex": [r"(\d+\.){3}\d+", r"\b[KGTM]?B\b", r"([\w-]+\.){2,}[\w-]+"],
+        "delimiter": [],
+        "theshold": 4,
+    }
+}
 
-for dataset, setting in benchmark_settings.items():
-    print("\n=== Evaluation on %s ===" % dataset)
-    indir = os.path.join(corrected_input_dir, os.path.dirname(setting["log_file"]))
-    log_file = os.path.basename(setting["log_file"])
-    parser = Brain.LogParser(
-        log_format=setting["log_format"],
-        indir=indir,
-        outdir=output_dir,
-        rex=setting["regex"],
-        # rex = general_regex,
-        delimeter=setting["delimiter"],
-        threshold=setting["theshold"],
-        # threshold=general_threshold,
-        logname=dataset,
+hdfs_benchmark_settings = {
+    "HDFS_10k": {
+        "log_file": "HDFS/HDFS_10k.log",
+        "log_format": "<Date> <Time> <Pid> <Level> <Component>: <Content>",
+        "regex": [r"blk_-?\d+", r"(\d+\.){3}\d+(:\d+)?"],
+        "delimiter": [""],
+        "theshold": 2,
+    },
+    "HDFS_50k": {
+        "log_file": "HDFS/HDFS_50k.log",
+        "log_format": "<Date> <Time> <Pid> <Level> <Component>: <Content>",
+        "regex": [r"blk_-?\d+", r"(\d+\.){3}\d+(:\d+)?"],
+        "delimiter": [""],
+        "theshold": 2,
+    },
+    "HDFS_100k": {
+        "log_file": "HDFS/HDFS_100k.log",
+        "log_format": "<Date> <Time> <Pid> <Level> <Component>: <Content>",
+        "regex": [r"blk_-?\d+", r"(\d+\.){3}\d+(:\d+)?"],
+        "delimiter": [""],
+        "theshold": 2,
+    },
+    "HDFS_500k": {
+        "log_file": "HDFS/HDFS_500k.log",
+        "log_format": "<Date> <Time> <Pid> <Level> <Component>: <Content>",
+        "regex": [r"blk_-?\d+", r"(\d+\.){3}\d+(:\d+)?"],
+        "delimiter": [""],
+        "theshold": 2,
+    },
+}
+
+
+
+def benchmark_accuracy():
+    benchmark_result = []
+
+    for dataset, setting in benchmark_settings.items():
+        print("\n=== Evaluation on %s ===" % dataset)
+        indir = os.path.join(const.corrected_input_dir, os.path.dirname(setting["log_file"]))
+        log_file = os.path.basename(setting["log_file"])
+        parser = Brain.LogParser(
+            log_format=setting["log_format"],
+            indir=indir,
+            outdir=output_dir,
+            rex=setting['regex'],
+            # rex = general_regex,
+            delimeter=setting['delimiter'],
+            threshold=setting['theshold'],
+            # threshold=general_threshold,
+            logname=dataset,
+        )
+        parser.parse(log_file)
+
+        F1_measure, accuracy = evaluator.evaluate(
+            groundtruth=os.path.join(indir, log_file + const.corrected_file_suffix),
+            parsedresult=os.path.join(output_dir, log_file + const.input_file_suffix),
+        )
+        benchmark_result.append([dataset, F1_measure, accuracy])
+
+    print("\n=== Overall evaluation results ===")
+    df_result = pd.DataFrame(
+        benchmark_result, columns=["Dataset", "F1_measure", "Accuracy"]
     )
-    parser.parse(log_file)
+    df_result.set_index("Dataset", inplace=True)
+    print(df_result)
+    df_result.to_csv("Brain_bechmark_result.csv", float_format="%.6f")
 
-    F1_measure, accuracy = evaluator.evaluate(
-        groundtruth=os.path.join(indir, log_file + corrected_file_suffix),
-        parsedresult=os.path.join(output_dir, log_file + input_file_suffix),
+def benchmark_time():
+    benchmark_result = []
+    parsing_times = 10
+    for dataset, setting in const.android_benchmark_settings.items():
+        print("\n=== Evaluation on %s ===" % dataset)
+        indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
+        log_file = os.path.basename(setting["log_file"])
+        
+        total_time = []
+        for _ in range(parsing_times):
+            parser = Brain.LogParser(
+            log_format=setting["log_format"],
+            indir=indir,
+            outdir=output_dir,
+            rex=setting['regex'],
+            # rex = general_regex,
+            delimeter=setting['delimiter'],
+            threshold=setting['theshold'],
+            # threshold=general_threshold,
+            logname=dataset,
+        )
+            start_time = datetime.now()
+            parser.parse(log_file)
+            end_time = datetime.now()
+            total_time.append((end_time - start_time).total_seconds())
+        delta_series = pd.Series(total_time)
+        mean_time = delta_series.mean()
+        std_time = delta_series.std()
+        benchmark_result.append([dataset, mean_time, std_time])
+
+    print("\n=== Overall time results ===")
+    df_result = pd.DataFrame(
+        benchmark_result, columns=["Dataset", "Mean", "Std"]
     )
-    benchmark_result.append([dataset, F1_measure, accuracy])
+    df_result.set_index("Dataset", inplace=True)
+    print(df_result)
+    df_result.to_csv("Brain_android_time.csv", float_format="%.6f")
 
-print("\n=== Overall evaluation results ===")
-df_result = pd.DataFrame(
-    benchmark_result, columns=["Dataset", "F1_measure", "Accuracy"]
-)
-df_result.set_index("Dataset", inplace=True)
-print(df_result)
-df_result.to_csv("Brain_bechmark_result.csv", float_format="%.6f")
+def benchmark_memory():
+    benchmark_result = []
+    parsing_times = 10
+    for dataset, setting in spark_benchmark_settings.items():
+        print("\n=== Evaluation on %s ===" % dataset)
+        indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
+        log_file = os.path.basename(setting["log_file"])
+        
+        total_memo = []
+        for _ in range(parsing_times):
+            parser = Brain.LogParser(
+            log_format=setting["log_format"],
+            indir=indir,
+            outdir=output_dir,
+            rex=setting['regex'],
+            # rex = general_regex,
+            delimeter=setting['delimiter'],
+            threshold=setting['theshold'],
+            # threshold=general_threshold,
+            logname=dataset,
+        )
+            tracemalloc.start()
+            current, _ = tracemalloc.get_traced_memory()
+            parser.parse(log_file)
+            _, peak = tracemalloc.get_traced_memory()
+            total_memo.append((peak - current) / 1024)
+            tracemalloc.stop()
+        delta_series = pd.Series(total_memo)
+        mean_memo = delta_series.mean()
+        std_memo = delta_series.std()
+        benchmark_result.append([dataset, mean_memo, std_memo])
+
+    print("\n=== Overall time results ===")
+    df_result = pd.DataFrame(
+        benchmark_result, columns=["Dataset", "Mean", "Std"]
+    )
+    df_result.set_index("Dataset", inplace=True)
+    print(df_result)
+    df_result.to_csv("Brain_spark_memo.csv", float_format="%.6f")
+
+if __name__ == "__main__":
+    # benchmark_accuracy()
+    benchmark_time()
+    # benchmark_memory()

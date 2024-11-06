@@ -3,7 +3,53 @@ import pandas as pd
 import seaborn as sns
 import os
 
+def load_combined_data(data_dir):
+    combined_df = pd.DataFrame()
+    for csv_file in os.listdir(data_dir):
+        if csv_file.endswith('memo_result.csv'):
+            file_path = os.path.join(data_dir, csv_file)
+            temp_df = pd.read_csv(file_path)
+            # Extract parser name from the file name (before '_')
+            parser_name = csv_file.split('_')[0]
+            # Rename the "Mean" and "Std" columns to include parser name
+            temp_df = temp_df.rename(columns={"Mean": f"{parser_name}_Mean", "Std": f"{parser_name}_Std"})
+            # Merge with the combined DataFrame based on Dataset
+            if combined_df.empty:
+                combined_df = temp_df[['Dataset', f"{parser_name}_Mean"]]
+            else:
+                combined_df = pd.merge(combined_df, temp_df[['Dataset', f"{parser_name}_Mean"]], on='Dataset', how='outer')
+    return combined_df
 
+# Draw table for combined time or memory data
+def draw_comparison_table(df, title, filename):
+    columns_to_consider = df.columns.difference(['Dataset', 'Best']) 
+    _, ax = plt.subplots(figsize=(15, 8))
+    ax.axis('tight')
+    ax.axis('off')
+    df['Best'] = df.iloc[:, 1:].min(axis=1)
+    # Round all numerical columns to three decimal places
+    for col in df.columns[1:]:  # Skip the 'Dataset' column
+        df[col] = df[col].apply(lambda x: round(float(x), 3) if isinstance(x, (int, float)) else x)
+    table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+    # Style the table with highlights
+    for (i, j), cell in table.get_celld().items():
+        # Header row or Dataset column
+        if i == 0 or j == 0:
+            cell.set_text_props(weight='bold')  # Make header and dataset names bold
+        # Highlight max values
+        elif j != 0 and i > 0:
+            try:
+                if float(cell.get_text().get_text()) == df.iloc[i-1][columns_to_consider].min():
+                    cell.set_text_props(weight='bold')
+            except ValueError:
+                pass  # Skip non-numeric cells
+
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1.2, 1.2)
+    plt.title(title, fontsize=14, weight='bold')
+    plt.savefig(filename, bbox_inches="tight", dpi=300)
+    plt.show()
 
 # Function to load all CSV files and create the combined DataFrame
 def load_data(benchmark_dir):
@@ -103,10 +149,22 @@ def draw_distribution_plot(df):
     plt.show()
 
 if __name__ == "__main__":
-    benchmark_dir = "./BenchmarkResult"
-    # benchmark_dir = "TestBenchmark"
-    df = load_data(benchmark_dir)
-    # print(df)
-    draw_distribution_plot(df)
-    draw_benchmark_table(df)
+    # benchmark_dir = "./BenchmarkCorrected"
+    # # benchmark_dir = "TestBenchmark"
+    # df = load_data(benchmark_dir)
+    # # print(df)
+    # draw_distribution_plot(df)
+    # draw_benchmark_table(df)
+
+    # # Load and draw combined time data
+    # time_dir = "./TimeMemoResult"  # Directory containing time sample CSVs
+    # combined_time_df = load_combined_data(time_dir)
+    # draw_comparison_table(combined_time_df, "Time Benchmark Comparison for Log Parsers", "time_comparison_table.png")
+
+    memo_dir = "./TimeMemoResult"  # Directory containing time sample CSVs
+    combined_time_df = load_combined_data(memo_dir)
+    draw_comparison_table(combined_time_df, "Memo Benchmark Comparison for Log Parsers", "memo_comparison_table.png")
+
+
+
     
