@@ -26,6 +26,8 @@ spark_benchmark_settings = {
         "merge_percent": 0.5,
         "st": 0.5,
         "depth": 4,
+        "threshold": 0.9,
+        "tau": 0.55,
     },
     "Spark_50k": {
         "log_file": "Spark/Spark_50k.log",
@@ -37,6 +39,8 @@ spark_benchmark_settings = {
         "merge_percent": 0.5,
         "st": 0.5,
         "depth": 4,
+        "threshold": 0.9,
+        "tau": 0.55,
     },
     "Spark_100k": {
         "log_file": "Spark/Spark_100k.log",
@@ -48,6 +52,8 @@ spark_benchmark_settings = {
         "merge_percent": 0.5,
         "st": 0.5,
         "depth": 4,
+        "threshold": 0.9,
+        "tau": 0.55,
     },
     # "Spark_500k": {
     #     "log_file": "Spark/Spark_500k.log",
@@ -73,6 +79,8 @@ hdfs_benchmark_settings = {
         "merge_percent": 0.5,
         "st": 0.5,
         "depth": 4,
+        "threshold": 0.9,
+        "tau": 0.7,
     },
     "HDFS_50k": {
         "log_file": "HDFS/HDFS_50k.log",
@@ -84,6 +92,8 @@ hdfs_benchmark_settings = {
         "merge_percent": 0.5,
         "st": 0.5,
         "depth": 4,
+        "threshold": 0.9,
+        "tau": 0.7,
     },
     "HDFS_100k": {
         "log_file": "HDFS/HDFS_100k.log",
@@ -95,6 +105,8 @@ hdfs_benchmark_settings = {
         "merge_percent": 0.5,
         "st": 0.5,
         "depth": 4,
+        "threshold": 0.9,
+        "tau": 0.7,
     },
     # "HDFS_500k": {
     #     "log_file": "HDFS/HDFS_500k.log",
@@ -126,6 +138,8 @@ android_benchmark_settings = {
         "theshold": 5,
         "minEventCount": 2,
         "merge_percent": 0.6,
+        "threshold": 0.9,
+        "tau": 0.95,
     },
     "Android_50k": {
         "log_file": "Android/Android_50k.log",
@@ -143,6 +157,8 @@ android_benchmark_settings = {
         "theshold": 5,
         "minEventCount": 2,
         "merge_percent": 0.6,
+        "threshold": 0.9,
+        "tau": 0.95,
     },
     "Android_100k": {
         "log_file": "Android/Android_100k.log",
@@ -160,6 +176,33 @@ android_benchmark_settings = {
         "theshold": 5,
         "minEventCount": 2,
         "merge_percent": 0.6,
+        "threshold": 0.9,
+        "tau": 0.95,
+    },
+}
+
+cpu_benchmark_settings = {
+    # "BGL_1000k": {
+    #     "log_file": "BGL/BGL_1000k.log",
+    #     "log_format": "<Date> <Time> <Pid> <Level> <Component>: <Content>",
+    #     "regex": [r"blk_-?\d+", r"(\d+\.){3}\d+(:\d+)?"],
+    #     "delimiter": [""],
+    #     "theshold": 2,
+    #     "minEventCount": 2,
+    #     "merge_percent": 0.5,
+    #     "st": 0.5,
+    #     "depth": 4,
+    # },
+    "HDFS_500k": {
+        "log_file": "HDFS/HDFS_500k.log",
+        "log_format": "<Date> <Time> <Pid> <Level> <Component>: <Content>",
+        "regex": [r"blk_-?\d+", r"(\d+\.){3}\d+(:\d+)?"],
+        "delimiter": [""],
+        "theshold": 2,
+        "minEventCount": 2,
+        "merge_percent": 0.5,
+        "st": 0.5,
+        "depth": 4,
     },
 }
 
@@ -174,6 +217,7 @@ bgl_benchmark_settings = {
         "theshold": 6,
         "minEventCount": 2,
         "merge_percent": 0.5,
+        "tau": 0.75,
     },
     "BGL_50k": {
         "log_file": "BGL/BGL_50k.log",
@@ -185,6 +229,7 @@ bgl_benchmark_settings = {
         "theshold": 6,
         "minEventCount": 2,
         "merge_percent": 0.5,
+        "tau": 0.75,
     },
     "BGL_100k": {
         "log_file": "BGL/BGL_100k.log",
@@ -196,6 +241,7 @@ bgl_benchmark_settings = {
         "theshold": 6,
         "minEventCount": 2,
         "merge_percent": 0.5,
+        "tau": 0.75,
     },
 
     # "BGL_500k": {

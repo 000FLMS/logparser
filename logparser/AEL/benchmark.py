@@ -219,7 +219,7 @@ def benchmark_time():
 def benchmark_memory():
     benchmark_result = []
     parsing_times = 10
-    for dataset, setting in const.spark_benchmark_settings.items():
+    for dataset, setting in const.android_benchmark_settings.items():
         print("\n=== Evaluation on %s ===" % dataset)
         indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
         log_file = os.path.basename(setting["log_file"])
@@ -251,8 +251,8 @@ def benchmark_memory():
     )
     df_result.set_index("Dataset", inplace=True)
     print(df_result)
-    df_result.to_csv("AEL_spark_memo.csv", float_format="%.6f")
+    df_result.to_csv("AEL_android_memo.csv", float_format="%.6f")
 
 if __name__ == "__main__":
-    benchmark_time()
-    # benchmark_memory()
+    # benchmark_time()
+    benchmark_memory()

@@ -148,6 +148,70 @@ def draw_distribution_plot(df):
     plt.savefig("accuracy_distribution_plot.png", bbox_inches="tight", dpi=300)
     plt.show()
 
+
+def draw_bar_chart(data_dir, dataset, type):
+    # Function to load and combine data from multiple CSV files
+    def load_time_data():
+        combined_data = pd.DataFrame()
+        for csv_file in os.listdir(data_dir):
+            if csv_file.endswith(f'{dataset.lower()}_{type}.csv'):
+                file_path = os.path.join(data_dir, csv_file)
+                temp_df = pd.read_csv(file_path)
+                # Extract method name from the filename (up to the first underscore)
+                method_name = csv_file.split('_')[0]
+                temp_df['Method'] = method_name  # Add a column for method
+                combined_data = pd.concat([combined_data, temp_df], ignore_index=True)
+        return combined_data
+        
+    dataset_order = [f'{dataset}_10k', f'{dataset}_50k', f'{dataset}_100k']
+    df = load_time_data()
+    print(df)
+    df = df[df['Dataset'] != f'{dataset}_500k']
+    if type == "memo":
+        df ["Mean"] = df["Mean"] / 1024
+        df ["Std"] = df["Std"] / 1024
+    df['Dataset'] = pd.Categorical(df['Dataset'], categories=dataset_order, ordered=True)
+    df.sort_values(['Dataset', 'Method'], inplace=True)
+
+
+    # Pivot the DataFrame to have datasets as index and methods as columns
+    mean_df = df.pivot(index='Dataset', columns='Method', values='Mean')
+    std_df = df.pivot(index='Dataset', columns='Method', values='Std')
+
+    # Fill missing values if necessary
+    mean_df.fillna(0, inplace=True)
+    std_df.fillna(0, inplace=True)
+
+    # # Define a color mapping for each method
+    if type == "memo":
+        color_mapping = {
+            'AEL': 'red',
+            'Brain': 'yellow',
+            'Drain': 'purple'
+        }
+
+        # Get the list of colors for the methods in the same order as the columns
+        colors = [color_mapping.get(method, '#333333') for method in mean_df.columns]
+        # Plotting
+        ax = mean_df.plot(kind='bar', yerr=std_df, capsize=4, figsize=(10,6), rot=0, color=colors)
+    else:
+        # Plotting
+        ax = mean_df.plot(kind='bar', yerr=std_df, capsize=4, figsize=(10,6), rot=0)
+
+    if type == "time":
+        prompt = "Mean time (s)"
+    else:
+        prompt = "Mean memory cost (MB)"
+    # Customize the plot
+    plt.xlabel('Dataset')
+    plt.ylabel(prompt)
+    plt.title(f'{prompt} per Method for Each Dataset')
+    plt.legend(title='Method')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.savefig(f"{type}_{dataset.lower()}.png", bbox_inches="tight", dpi=300)
+    plt.show()
+
 if __name__ == "__main__":
     # benchmark_dir = "./BenchmarkCorrected"
     # # benchmark_dir = "TestBenchmark"
@@ -161,10 +225,10 @@ if __name__ == "__main__":
     # combined_time_df = load_combined_data(time_dir)
     # draw_comparison_table(combined_time_df, "Time Benchmark Comparison for Log Parsers", "time_comparison_table.png")
 
-    memo_dir = "./TimeMemoResult"  # Directory containing time sample CSVs
-    combined_time_df = load_combined_data(memo_dir)
-    draw_comparison_table(combined_time_df, "Memo Benchmark Comparison for Log Parsers", "memo_comparison_table.png")
-
+    # memo_dir = "./TimeMemoResult"  # Directory containing time sample CSVs
+    # combined_time_df = load_combined_data(memo_dir)
+    # draw_comparison_table(combined_time_df, "Memo Benchmark Comparison for Log Parsers", "memo_comparison_table.png")
+    draw_bar_chart("./TimeMemoAll", "Spark", "memo")
 
 
     

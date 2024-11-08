@@ -24,6 +24,7 @@ import os
 import pandas as pd
 from datetime import datetime
 import tracemalloc
+import psutil
 
 
 output_dir = "Drain_result/"  # The output directory of parsing results
@@ -222,7 +223,7 @@ def benchmark_time():
 def benchmark_memory():
     benchmark_result = []
     parsing_times = 10
-    for dataset, setting in const.hdfs_benchmark_settings.items():
+    for dataset, setting in const.android_benchmark_settings.items():
         print("\n=== Evaluation on %s ===" % dataset)
         indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
         log_file = os.path.basename(setting["log_file"])
@@ -254,8 +255,52 @@ def benchmark_memory():
     )
     df_result.set_index("Dataset", inplace=True)
     print(df_result)
-    df_result.to_csv("Drain_hdfs_memo.csv", float_format="%.6f")
+    df_result.to_csv("Drain_android_memo.csv", float_format="%.6f")
+
+def benchmark_cpu():
+    benchmark_result = []
+    parsing_times = 1
+    for dataset, setting in const.cpu_benchmark_settings.items():
+        print("\n=== Evaluation on %s ===" % dataset)
+        indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
+        log_file = os.path.basename(setting["log_file"])
+        
+        total_cpu = []
+        for _ in range(parsing_times):
+            parser = LogParser(
+            log_format=setting["log_format"],
+            indir=indir,
+            outdir=output_dir,
+            rex=setting["regex"],
+            depth=setting['depth'],
+            st=setting['st'],
+        )
+            start_cpu = psutil.cpu_percent(interval=1.0)
+            print(start_cpu)
+            
+            parser.parse(log_file)
+            
+            cpu_percentage = psutil.cpu_percent(interval=None)
+
+            total_cpu.append(cpu_percentage)
+        
+        delta_series = pd.Series(total_cpu)
+        mean_cpu = delta_series.mean()
+        std_cpu = delta_series.std()
+        benchmark_result.append([dataset, mean_cpu, std_cpu])
+    
+
+    print("\n=== Overall time results ===")
+    df_result = pd.DataFrame(
+        benchmark_result, columns=["Dataset", "Mean", "Std"]
+    )
+    df_result.set_index("Dataset", inplace=True)
+    print(df_result)
+    df_result.to_csv("Drain_cpu_1000k.csv", float_format="%.6f")
+
+
 
 if __name__ == "__main__":
-    benchmark_time()
+    # benchmark_time()
     # benchmark_memory()
+    benchmark_cpu()

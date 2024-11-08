@@ -240,6 +240,6 @@ def benchmark_memory():
 
 
 if __name__ == "__main__":
-    # benchmark_time()
-    benchmark_memory()
+    benchmark_time()
+    # benchmark_memory()
     

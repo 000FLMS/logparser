@@ -19,7 +19,7 @@ import sys
 sys.path.append("../../")
 from logparser.Spell import LogParser
 from logparser.utils import evaluator
-from logparser.utils.const import input_dir, input_file_suffix, corrected_input_dir, corrected_file_suffix
+from logparser.utils import const
 import os
 import pandas as pd
 from datetime import datetime
@@ -139,7 +139,7 @@ def benchmark_accuracy():
     bechmark_result = []
     for dataset, setting in benchmark_settings.items():
         print("\n=== Evaluation on %s ===" % dataset)
-        indir = os.path.join(corrected_input_dir, os.path.dirname(setting["log_file"]))
+        indir = os.path.join(const.corrected_input_dir, os.path.dirname(setting["log_file"]))
         log_file = os.path.basename(setting["log_file"])
 
         parser = LogParser(
@@ -152,8 +152,8 @@ def benchmark_accuracy():
         parser.parse(log_file)
 
         F1_measure, accuracy = evaluator.evaluate(
-            groundtruth=os.path.join(indir, log_file + corrected_file_suffix),
-            parsedresult=os.path.join(output_dir, log_file + input_file_suffix),
+            groundtruth=os.path.join(indir, log_file + const.corrected_file_suffix),
+            parsedresult=os.path.join(output_dir, log_file + const.input_file_suffix),
         )
         bechmark_result.append([dataset, F1_measure, accuracy])
 
@@ -166,9 +166,9 @@ def benchmark_accuracy():
 def benchmark_time():
     benchmark_result = []
     parsing_times = 10
-    for dataset, setting in benchmark_settings.items():
+    for dataset, setting in const.android_benchmark_settings.items():
         print("\n=== Evaluation on %s ===" % dataset)
-        indir = os.path.join(corrected_input_dir, os.path.dirname(setting["log_file"]))
+        indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
         log_file = os.path.basename(setting["log_file"])
         
         total_time = []
@@ -195,14 +195,14 @@ def benchmark_time():
     )
     df_result.set_index("Dataset", inplace=True)
     print(df_result)
-    df_result.to_csv("Spell_time_result.csv", float_format="%.6f")
+    df_result.to_csv("Spell_android_time.csv", float_format="%.6f")
 
 def benchmark_memory():
     benchmark_result = []
     parsing_times = 10
-    for dataset, setting in benchmark_settings.items():
+    for dataset, setting in const.bgl_benchmark_settings.items():
         print("\n=== Evaluation on %s ===" % dataset)
-        indir = os.path.join(corrected_input_dir, os.path.dirname(setting["log_file"]))
+        indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
         log_file = os.path.basename(setting["log_file"])
         
         total_memo = []
@@ -231,8 +231,8 @@ def benchmark_memory():
     )
     df_result.set_index("Dataset", inplace=True)
     print(df_result)
-    df_result.to_csv("Spell_memo_result.csv", float_format="%.6f")
+    df_result.to_csv("Spell_bgl_memo.csv", float_format="%.6f")
 
 if __name__ == "__main__":
-    # benchmark_time()
-    benchmark_memory()
+    benchmark_time()
+    # benchmark_memory()
