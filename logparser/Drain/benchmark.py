@@ -22,9 +22,6 @@ from logparser.utils import evaluator
 from logparser.utils import const
 import os
 import pandas as pd
-from datetime import datetime
-import tracemalloc
-import psutil
 
 
 output_dir = "Drain_result/"  # The output directory of parsing results
@@ -160,7 +157,6 @@ def benchmark_accuracy():
         print("\n=== Evaluation on %s ===" % dataset)
         indir = os.path.join(const.corrected_input_dir, os.path.dirname(setting["log_file"]))
         log_file = os.path.basename(setting["log_file"])
-
         parser = LogParser(
             log_format=setting["log_format"],
             indir=indir,
@@ -186,31 +182,18 @@ def benchmark_accuracy():
 
 def benchmark_time():
     benchmark_result = []
-    parsing_times = 10
-    for dataset, setting in const.android_benchmark_settings.items():
+    for dataset, setting in const.hdfs_benchmark_settings.items():
         print("\n=== Evaluation on %s ===" % dataset)
         indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
         log_file = os.path.basename(setting["log_file"])
-
-        parser = LogParser(
+        benchmark_result += evaluator.benchmark_time(
+            dataset, LogParser, log_file, 10, 
             log_format=setting["log_format"],
             indir=indir,
             outdir=output_dir,
             rex=setting["regex"],
             depth=setting['depth'],
-            st=setting['st'],
-        )
-        
-        total_time = []
-        for _ in range(parsing_times):
-            start_time = datetime.now()
-            parser.parse(log_file)
-            end_time = datetime.now()
-            total_time.append((end_time - start_time).total_seconds())
-        delta_series = pd.Series(total_time)
-        mean_time = delta_series.mean()
-        std_time = delta_series.std()
-        benchmark_result.append([dataset, mean_time, std_time])
+            st=setting['st'])
 
     print("\n=== Overall time results ===")
     df_result = pd.DataFrame(
@@ -222,33 +205,18 @@ def benchmark_time():
 
 def benchmark_memory():
     benchmark_result = []
-    parsing_times = 10
     for dataset, setting in const.android_benchmark_settings.items():
         print("\n=== Evaluation on %s ===" % dataset)
         indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
         log_file = os.path.basename(setting["log_file"])
-        
-        total_memo = []
-        for _ in range(parsing_times):
-            parser = LogParser(
+        benchmark_result += evaluator.benchmark_memory(
+            dataset, LogParser, log_file, 10, 
             log_format=setting["log_format"],
             indir=indir,
             outdir=output_dir,
             rex=setting["regex"],
             depth=setting['depth'],
-            st=setting['st'],
-        )
-            tracemalloc.start()
-            current, _ = tracemalloc.get_traced_memory()
-            parser.parse(log_file)
-            _, peak = tracemalloc.get_traced_memory()
-            total_memo.append((peak - current) / 1024)
-            tracemalloc.stop()
-        delta_series = pd.Series(total_memo)
-        mean_memo = delta_series.mean()
-        std_memo = delta_series.std()
-        benchmark_result.append([dataset, mean_memo, std_memo])
-
+            st=setting['st'])
     print("\n=== Overall time results ===")
     df_result = pd.DataFrame(
         benchmark_result, columns=["Dataset", "Mean", "Std"]
@@ -259,37 +227,18 @@ def benchmark_memory():
 
 def benchmark_cpu():
     benchmark_result = []
-    parsing_times = 1
     for dataset, setting in const.cpu_benchmark_settings.items():
         print("\n=== Evaluation on %s ===" % dataset)
         indir = os.path.join(const.all_log_input_dir, os.path.dirname(setting["log_file"]))
         log_file = os.path.basename(setting["log_file"])
-        
-        total_cpu = []
-        for _ in range(parsing_times):
-            parser = LogParser(
+        benchmark_result += evaluator.benchmark_cpu(
+            dataset, LogParser, log_file, 3, 
             log_format=setting["log_format"],
             indir=indir,
             outdir=output_dir,
             rex=setting["regex"],
             depth=setting['depth'],
-            st=setting['st'],
-        )
-            start_cpu = psutil.cpu_percent(interval=1.0)
-            print(start_cpu)
-            
-            parser.parse(log_file)
-            
-            cpu_percentage = psutil.cpu_percent(interval=None)
-
-            total_cpu.append(cpu_percentage)
-        
-        delta_series = pd.Series(total_cpu)
-        mean_cpu = delta_series.mean()
-        std_cpu = delta_series.std()
-        benchmark_result.append([dataset, mean_cpu, std_cpu])
-    
-
+            st=setting['st'])
     print("\n=== Overall time results ===")
     df_result = pd.DataFrame(
         benchmark_result, columns=["Dataset", "Mean", "Std"]
@@ -301,6 +250,6 @@ def benchmark_cpu():
 
 
 if __name__ == "__main__":
-    # benchmark_time()
+    benchmark_time()
     # benchmark_memory()
-    benchmark_cpu()
+    # benchmark_cpu()
