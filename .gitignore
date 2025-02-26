@@ -58,3 +58,5 @@ Unused/
 POP/
 .ipynb_checkpoints/
 *.ipynb
+
+*.csv
